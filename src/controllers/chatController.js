@@ -2,7 +2,8 @@ const axios = require('axios');
 const ChatHistory = require('../models/ChatHistory');
 
 const sendMessage = async (req, res) => {
-  const { message, userId } = req.body;
+  const { message } = req.body;
+  const userId = req.user.id;
 
   try {
     const response = await axios.post('https://api.openai.com/v1/engines/davinci-codex/completions', {
@@ -39,4 +40,20 @@ const sendMessage = async (req, res) => {
   }
 };
 
-module.exports = { sendMessage };
+const getChatHistory = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const chatHistory = await ChatHistory.findOne({ userId });
+    if (!chatHistory) {
+      return res.status(404).json({ error: 'No chat history found' });
+    }
+
+    res.json(chatHistory);
+  } catch (error) {
+    console.error('Error retrieving chat history:', error);
+    res.status(500).json({ error: 'Error retrieving chat history' });
+  }
+};
+
+module.exports = { sendMessage, getChatHistory };
